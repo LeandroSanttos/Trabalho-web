@@ -28,10 +28,6 @@ public class JogadorEntity {
     @JoinColumn(name = "clube_id")
     private ClubeEntity clube;
 
-    /*@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "federacao_nacional_id", nullable = false)
-    private FederacaoNacionalEntity federacaoNacional;*/
-
     public JogadorEntity(Long id) {
         this.id = id;
     }
