@@ -1,4 +1,4 @@
-package com.trabalho.trabalho;
+package com.trabalho;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
