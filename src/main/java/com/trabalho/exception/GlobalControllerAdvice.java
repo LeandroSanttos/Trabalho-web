@@ -5,8 +5,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
 @ControllerAdvice
-public class DefaultControllerAdvice {
-
+public class GlobalControllerAdvice {
   @ExceptionHandler({Exception.class})
   public ModelAndView error() {
     var model = new ModelAndView();
