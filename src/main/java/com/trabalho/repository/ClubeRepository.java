@@ -1,5 +1,13 @@
 package com.trabalho.repository;
 
-public interface ClubeRepository {
-    
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.trabalho.domain.entity.ClubeEntity;
+
+@Repository
+public interface ClubeRepository extends JpaRepository<ClubeEntity, Long> {
+    Optional<ClubeEntity> findByFederacaoNacionalId(Long id);
 }

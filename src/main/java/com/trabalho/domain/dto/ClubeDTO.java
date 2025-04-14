@@ -20,6 +20,8 @@ public class ClubeDTO {
 
     @NotNull @Email private String email;
 
+    @NotNull private FederacaoNacionalDTO federacaoNacional;
+
     private List<JogadorDTO> jogadores;
 
     private TreinadorDTO treinador;

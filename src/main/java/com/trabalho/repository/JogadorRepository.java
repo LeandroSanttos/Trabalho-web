@@ -9,6 +9,5 @@ import com.trabalho.domain.entity.JogadorEntity;
 
 @Repository
 public interface JogadorRepository extends JpaRepository<JogadorEntity, Long> {
-    
     List<JogadorEntity> findByClubeId(Long clubeId);
 }

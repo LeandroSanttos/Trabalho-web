@@ -7,7 +7,7 @@ import com.trabalho.domain.entity.FederacaoContinentalEntity;
 
 @Mapper(
     componentModel = "spring",
-    uses = {FedercaoNacionalMapper.class})
+    uses = {FederacaoNacionalMapper.class})
 public abstract class FederacaoContinentalMapper {
     public abstract FederacaoContinentalEntity toEntity(FederacaoContinentalDTO dto);
 

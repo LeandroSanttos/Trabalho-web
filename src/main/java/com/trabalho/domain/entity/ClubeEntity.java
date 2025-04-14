@@ -25,6 +25,10 @@ public class ClubeEntity {
 
     @Column private String email;
 
+    @OneToOne
+    @JoinColumn(name = "federacao_nacional_id")
+    private FederacaoNacionalEntity federacaoNacional;
+
     @OneToMany(mappedBy = "clube")
     private List<JogadorEntity> jogadores;
 

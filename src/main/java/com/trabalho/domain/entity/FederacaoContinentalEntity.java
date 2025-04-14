@@ -17,7 +17,8 @@ public class FederacaoContinentalEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column private String nome;
+    @Column(unique = true) 
+    private String nome;
 
     @Column(unique = true) 
     private String continente;

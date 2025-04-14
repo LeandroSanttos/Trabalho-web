@@ -1,5 +1,7 @@
 package com.trabalho.domain.dto;
 
+import com.trabalho.domain.entity.enums.Posicao;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,6 +19,8 @@ public class JogadorDTO {
     @NotNull private String nacionalidade;
 
     @NotNull @Email private String email;
+
+    @NotNull private Posicao posicao;
 
     private ClubeDTO clube;
 }

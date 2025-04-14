@@ -1,5 +1,7 @@
 package com.trabalho.domain.entity;
 
+import com.trabalho.domain.entity.enums.Posicao;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +24,9 @@ public class JogadorEntity {
 
     @Column private String email;
 
-    @Column private String posicao;
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Posicao posicao;
 
     @OneToOne
     @JoinColumn(name = "clube_id")

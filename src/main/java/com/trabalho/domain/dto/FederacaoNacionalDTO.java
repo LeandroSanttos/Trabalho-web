@@ -20,5 +20,7 @@ public class FederacaoNacionalDTO {
 
     @NotNull @Email private String email;
 
+    @NotNull private FederacaoContinentalDTO federacaoContinental;
+
     private List<ClubeDTO> clubes;
 }
