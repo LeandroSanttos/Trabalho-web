@@ -18,17 +18,20 @@ public class JogadorEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column private String nome;
+    @Column
+    private String nome;
 
-    @Column private String nacionalidade;
+    @Column
+    private String nacionalidade;
 
-    @Column private String email;
+    @Column
+    private String email;
 
     @Enumerated(EnumType.STRING)
     @Column
     private Posicao posicao;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "clube_id")
     private ClubeEntity clube;
 
