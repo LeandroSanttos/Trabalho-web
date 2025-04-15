@@ -26,10 +26,10 @@ public class FederacaoNacionalEntity {
     @Column private String email;
     
     @ManyToOne
-    @JoinColumn(name = "federcao_continental_id")
+    @JoinColumn(name = "federacao_continental_id")
     private FederacaoContinentalEntity federacaoContinental;
 
-    @OneToMany(mappedBy = "federacao_nacional")
+    @OneToMany(mappedBy = "federacaoNacional")
     private List<ClubeEntity> clubes;
 
     public FederacaoNacionalEntity(Long id) {

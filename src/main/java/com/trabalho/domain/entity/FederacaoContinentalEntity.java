@@ -25,7 +25,7 @@ public class FederacaoContinentalEntity {
 
     @Column private String email;
     
-    @OneToMany(mappedBy = "federacao_continental")
+    @OneToMany(mappedBy = "federacaoContinental")
     private List<FederacaoNacionalEntity> federacoesNacionais;
 
     public FederacaoContinentalEntity(Long id) {
