@@ -31,11 +31,14 @@ public class SecurityConfig {
             .map(PapelEntity::getPapel)
             .toList();
 
+        // Se a lista estiver vazia, usamos um papel default
+        String[] authorities = papeis.isEmpty() ? new String[]{"ADMIN"} : papeis.toArray(new String[0]);
+
         return http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/cadastro", "/css/**", "/js/**", "/img/**", "/error", "/h2-console/**").permitAll()
                         .requestMatchers(HOME, FEDERACAO_CONTINENTAL, FEDERACAO_NACIONAL, CLUBE, JOGADOR, TREINADOR).authenticated()
-                        .anyRequest().hasAnyAuthority(papeis.toArray(new String[0])))
+                        .anyRequest().hasAnyAuthority(authorities)) // Usa a lista de papéis, ou o papel default
                 .formLogin(login -> login.loginPage("/login").defaultSuccessUrl("/", true)
                         .permitAll())
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll())

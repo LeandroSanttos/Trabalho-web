@@ -1,0 +1,1 @@
+insert into tb_papel(id, papel) values(1, 'ADMIN');
