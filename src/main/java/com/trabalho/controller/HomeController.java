@@ -1,4 +1,4 @@
-package com.trabalho.service.impl;
+package com.trabalho.controller;
 
 import static com.trabalho.consts.RequestPathConstants.HOME;
 

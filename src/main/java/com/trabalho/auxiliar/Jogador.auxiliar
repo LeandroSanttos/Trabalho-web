@@ -1,0 +1,261 @@
+package com.trabalho.domain.entity;
+
+import com.trabalho.domain.entity.enums.Posicao;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "TB_JOGADOR")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class JogadorEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column
+    private String nome;
+
+    @Column
+    private String nacionalidade;
+
+    @Column
+    private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Posicao posicao;
+
+    @ManyToOne
+    @JoinColumn(name = "clube_id")
+    private ClubeEntity clube;
+
+    public JogadorEntity(Long id) {
+        this.id = id;
+    }
+}
+
+package com.trabalho.domain.dto;
+
+import com.trabalho.domain.entity.enums.Posicao;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class JogadorDTO {
+    private Long id;
+
+    @NotNull private String nome;
+
+    @NotNull private String nacionalidade;
+
+    @NotNull @Email private String email;
+
+    @NotNull private Posicao posicao;
+
+    private ClubeDTO clube;
+}
+
+package com.trabalho.domain.mapping;
+
+import org.mapstruct.Mapper;
+
+import com.trabalho.domain.dto.JogadorDTO;
+import com.trabalho.domain.entity.JogadorEntity;
+
+@Mapper(componentModel = "spring")
+public abstract class JogadorMapper {
+    public abstract JogadorEntity toEntity(JogadorDTO dto);
+
+    public abstract JogadorDTO toDto(JogadorEntity entity);
+}
+
+package com.trabalho.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.trabalho.domain.entity.JogadorEntity;
+
+@Repository
+public interface JogadorRepository extends JpaRepository<JogadorEntity, Long> {
+    List<JogadorEntity> findByClubeId(Long clubeId);
+}
+
+package com.trabalho.service;
+
+import java.util.List;
+
+import com.trabalho.domain.dto.JogadorDTO;
+
+public interface JogadorService {
+    JogadorDTO getById(Long jogadorId);
+
+    List<JogadorDTO> getByClube(Long clubeId);
+
+    List<JogadorDTO> getAll();
+
+    void save(JogadorDTO jogador);
+
+    void remove(Long id);
+}
+
+package com.trabalho.service.impl;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.trabalho.domain.dto.JogadorDTO;
+import com.trabalho.domain.mapping.JogadorMapper;
+import com.trabalho.repository.JogadorRepository;
+import com.trabalho.service.JogadorService;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class JogadorServiceImpl implements JogadorService {
+    private final JogadorRepository repository;
+    private final JogadorMapper mapper;
+
+    @Override
+    public JogadorDTO getById(Long jogadorId) {
+        return mapper.toDto(repository.findById(jogadorId).orElseThrow());
+    }
+
+    @Override
+    public List<JogadorDTO> getByClube(Long clubeId) {
+        return repository.findByClubeId(clubeId).stream().map(mapper::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<JogadorDTO> getAll() {
+        return repository.findAll().stream().map(mapper::toDto).toList();
+    }
+
+    @Override
+    public void save(JogadorDTO jogador) {
+        repository.save(mapper.toEntity(jogador));
+    }
+
+    @Override
+    public void remove(Long id) {
+        repository.deleteById(id);
+    }
+}
+
+package com.trabalho.controller;
+
+import static com.trabalho.consts.RequestPathConstants.JOGADOR;
+
+import com.trabalho.domain.dto.JogadorDTO;
+import com.trabalho.service.JogadorService;
+import com.trabalho.util.ControllerUtils;
+
+import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
+
+@Controller
+@RequestMapping(JOGADOR)
+@RequiredArgsConstructor
+@Slf4j
+public class JogadorController {
+
+    private static final String VIEWS_FOLDER = "jogador/";
+
+    private final JogadorService jogadorService;
+
+    @GetMapping
+    public ModelAndView listAll() {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "lista_jogadores");
+
+        List<JogadorDTO> jogadores = jogadorService.getAll();
+        model.addObject("jogadores", jogadores);
+
+        return model;
+    }
+
+    @GetMapping("/ver/{id}")
+    public ModelAndView visualizar(@PathVariable Long id) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_jogador");
+
+        JogadorDTO jogador = jogadorService.getById(id);
+        model.addObject("jogador", jogador);
+        model.addObject("visualizacao", true);
+
+        return model;
+    }
+
+    @GetMapping("/editar/{id}")
+    public ModelAndView editar(@PathVariable Long id, @RequestParam(required = false) boolean edicao) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_jogador");
+
+        JogadorDTO jogador = jogadorService.getById(id);
+        model.addObject("jogador", jogador);
+        model.addObject("edicao", edicao);
+
+        return model;
+    }
+
+    @GetMapping("/cadastrar")
+    public ModelAndView cadastrarForm(@RequestParam(required = false) boolean cadastro) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_jogador");
+
+        model.addObject("jogador", new JogadorDTO());
+        model.addObject("cadastro", cadastro);
+
+        return model;
+    }
+
+    @PostMapping("/cadastrar")
+    public ModelAndView save(@Valid JogadorDTO jogador, BindingResult bindingResult) {
+        var model = new ModelAndView();
+        var errors = ControllerUtils.createValidationErrorResponse(bindingResult);
+
+        if (!errors.hasErrors()) {
+            jogadorService.save(jogador);
+
+            if (jogador.getId() == null) {
+                model.setViewName("redirect:" + JOGADOR + "/cadastrar?cadastro=true");
+            } else {
+                model.setViewName("redirect:" + JOGADOR + "/editar/" + jogador.getId() + "?edicao=true");
+            }
+
+            return model;
+        }
+
+        model.addObject("errors", errors);
+        model.addObject("jogador", jogador);
+        model.setViewName(VIEWS_FOLDER + "form_jogador");
+
+        return model;
+    }
+}

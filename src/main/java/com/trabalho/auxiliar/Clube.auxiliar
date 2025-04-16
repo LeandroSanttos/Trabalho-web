@@ -1,0 +1,257 @@
+package com.trabalho.domain.entity;
+
+import java.util.List;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "TB_CLUBE")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ClubeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(unique = true)
+    private String nome;
+
+    @Column private String paisOrigem;
+
+    @Column private String email;
+
+    @OneToOne
+    @JoinColumn(name = "federacao_nacional_id")
+    private FederacaoNacionalEntity federacaoNacional;
+
+    @OneToMany(mappedBy = "clube")
+    private List<JogadorEntity> jogadores;
+
+    @OneToOne
+    @JoinColumn(name = "treinador_id")
+    private TreinadorEntity treinador;
+
+    public ClubeEntity(Long id) {
+        this.id = id;
+    }
+}
+
+package com.trabalho.domain.dto;
+
+import java.util.List;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ClubeDTO {
+    private Long id;
+
+    @NotNull private String nome;
+
+    @NotNull private String paisOrigem;
+
+    @NotNull @Email private String email;
+
+    @NotNull private FederacaoNacionalDTO federacaoNacional;
+
+    private List<JogadorDTO> jogadores;
+
+    private TreinadorDTO treinador;
+}
+
+package com.trabalho.domain.mapping;
+
+import org.mapstruct.Mapper;
+
+import com.trabalho.domain.dto.ClubeDTO;
+import com.trabalho.domain.entity.ClubeEntity;
+
+@Mapper(
+    componentModel = "spring",
+    uses = {JogadorMapper.class, TreinadorMapper.class})
+public abstract class ClubeMapper {
+    public abstract ClubeEntity toEntity(ClubeDTO dto);
+
+    public abstract ClubeDTO toDto(ClubeEntity entity);
+}
+
+package com.trabalho.repository;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.trabalho.domain.entity.ClubeEntity;
+
+@Repository
+public interface ClubeRepository extends JpaRepository<ClubeEntity, Long> {
+    Optional<ClubeEntity> findByFederacaoNacionalId(Long id);
+}
+
+package com.trabalho.service;
+
+import java.util.List;
+
+import com.trabalho.domain.dto.ClubeDTO;
+
+public interface ClubeService {
+    ClubeDTO getByID(Long id);
+
+    ClubeDTO getByFederacaoNacional(Long federacaoNacionalId);
+
+    List<ClubeDTO> getAll();
+
+    void save(ClubeDTO clube);
+}
+
+package com.trabalho.service.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.trabalho.domain.dto.ClubeDTO;
+import com.trabalho.domain.mapping.ClubeMapper;
+import com.trabalho.repository.ClubeRepository;
+import com.trabalho.service.ClubeService;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ClubeServiceImpl implements ClubeService {
+    private final ClubeRepository repository;
+    private final ClubeMapper mapper;
+
+    @Override
+    public ClubeDTO getByID(Long id) {
+        return mapper.toDto(repository.findById(id).orElseThrow());
+    }
+
+    @Override
+    public ClubeDTO getByFederacaoNacional(Long federacaoNacionalId) {
+        return mapper.toDto(repository.findByFederacaoNacionalId(federacaoNacionalId).orElseThrow());
+    }
+
+    @Override
+    public List<ClubeDTO> getAll() {
+        return repository.findAll().stream().map(mapper::toDto).toList();
+    }
+
+    @Override
+    public void save(ClubeDTO clube) {
+        repository.save(mapper.toEntity(clube));
+    }
+}
+
+package com.trabalho.controller;
+
+import static com.trabalho.consts.RequestPathConstants.CLUBE;
+
+import com.trabalho.domain.dto.ClubeDTO;
+import com.trabalho.service.ClubeService;
+import com.trabalho.util.ControllerUtils;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
+
+@Controller
+@RequestMapping(CLUBE)
+@RequiredArgsConstructor
+@Slf4j
+public class ClubeController {
+
+    private static final String VIEWS_FOLDER = "clube/";
+
+    private final ClubeService clubeService;
+
+    @GetMapping
+    public ModelAndView listAll() {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "lista_clubes");
+
+        List<ClubeDTO> clubes = clubeService.getAll();
+        model.addObject("clubes", clubes);
+
+        return model;
+    }
+
+    @GetMapping("/ver/{id}")
+    public ModelAndView visualizar(@PathVariable Long id) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_clube");
+
+        ClubeDTO clube = clubeService.getByID(id);
+        model.addObject("clube", clube);
+        model.addObject("visualizacao", true);
+
+        return model;
+    }
+
+    @GetMapping("/editar/{id}")
+    public ModelAndView editar(@PathVariable Long id, @RequestParam(required = false) boolean edicao) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_clube");
+
+        ClubeDTO clube = clubeService.getByID(id);
+        model.addObject("clube", clube);
+        model.addObject("edicao", edicao);
+
+        return model;
+    }
+
+    @GetMapping("/cadastrar")
+    public ModelAndView cadastrarForm(@RequestParam(required = false) boolean cadastro) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_clube");
+
+        model.addObject("clube", new ClubeDTO());
+        model.addObject("cadastro", cadastro);
+
+        return model;
+    }
+
+    @PostMapping("/cadastrar")
+    public ModelAndView save(@Valid ClubeDTO clube, BindingResult bindingResult) {
+        var model = new ModelAndView();
+        var errors = ControllerUtils.createValidationErrorResponse(bindingResult);
+
+        if (!errors.hasErrors()) {
+            clubeService.save(clube);
+
+            if (clube.getId() == null) {
+                model.setViewName("redirect:" + CLUBE + "/cadastrar?cadastro=true");
+            } else {
+                model.setViewName("redirect:" + CLUBE + "/editar/" + clube.getId() + "?edicao=true");
+            }
+
+            return model;
+        }
+
+        model.addObject("errors", errors);
+        model.addObject("clube", clube);
+        model.setViewName(VIEWS_FOLDER + "form_clube");
+
+        return model;
+    }
+}

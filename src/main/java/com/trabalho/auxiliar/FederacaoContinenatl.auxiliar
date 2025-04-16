@@ -1,0 +1,238 @@
+package com.trabalho.domain.entity;
+
+import java.util.List;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "TB_FEDERACAO_CONTINENTAL")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class FederacaoContinentalEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(unique = true) 
+    private String nome;
+
+    @Column(unique = true) 
+    private String continente;
+
+    @Column private String email;
+    
+    @OneToMany(mappedBy = "federacaoContinental")
+    private List<FederacaoNacionalEntity> federacoesNacionais;
+
+    public FederacaoContinentalEntity(Long id) {
+        this.id = id;
+    }
+}
+
+package com.trabalho.domain.dto;
+
+import java.util.List;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class FederacaoContinentalDTO {
+    private Long id;
+
+    @NotNull private String nome;
+
+    @NotNull private String continente;
+
+    @NotNull @Email private String email;
+
+    private List<FederacaoNacionalDTO> federacoesNacionais;
+}
+
+package com.trabalho.domain.mapping;
+
+import org.mapstruct.Mapper;
+
+import com.trabalho.domain.dto.FederacaoContinentalDTO;
+import com.trabalho.domain.entity.FederacaoContinentalEntity;
+
+@Mapper(
+    componentModel = "spring",
+    uses = {FederacaoNacionalMapper.class})
+public abstract class FederacaoContinentalMapper {
+    public abstract FederacaoContinentalEntity toEntity(FederacaoContinentalDTO dto);
+
+    public abstract FederacaoContinentalDTO toDto(FederacaoContinentalEntity entity);
+}
+
+package com.trabalho.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.trabalho.domain.entity.FederacaoContinentalEntity;
+
+@Repository
+public interface FederacaoContinentalRepository extends JpaRepository<FederacaoContinentalEntity, Long> {
+    
+}
+
+package com.trabalho.service;
+
+import java.util.List;
+
+import com.trabalho.domain.dto.FederacaoContinentalDTO;
+
+public interface FederacaoContinentalService {
+    void save(FederacaoContinentalDTO federacaoContinental);
+
+    FederacaoContinentalDTO getById(Long id);
+
+    List<FederacaoContinentalDTO> getAll();
+}
+
+package com.trabalho.service.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.trabalho.domain.dto.FederacaoContinentalDTO;
+import com.trabalho.domain.entity.FederacaoContinentalEntity;
+import com.trabalho.domain.mapping.FederacaoContinentalMapper;
+import com.trabalho.repository.FederacaoContinentalRepository;
+import com.trabalho.service.FederacaoContinentalService;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class FederacaoContinentalServiceImpl implements FederacaoContinentalService {
+    private final FederacaoContinentalRepository repository;
+    private final FederacaoContinentalMapper mapper;
+
+    @Override
+    public FederacaoContinentalDTO getById(Long id) {
+        return mapper.toDto(repository.findById(id).orElseThrow());
+    }
+
+    @Override
+    public List<FederacaoContinentalDTO> getAll() {
+        return repository.findAll().stream().map(mapper::toDto).toList();
+    }
+
+    @Override
+    public void save(FederacaoContinentalDTO federacaoContinental) {
+        FederacaoContinentalEntity entity = mapper.toEntity(federacaoContinental);
+        repository.save(entity);
+    }
+}
+
+package com.trabalho.controller;
+
+import static com.trabalho.consts.RequestPathConstants.FEDERACAO_CONTINENTAL;
+
+import com.trabalho.domain.dto.FederacaoContinentalDTO;
+import com.trabalho.service.FederacaoContinentalService;
+import com.trabalho.util.ControllerUtils;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
+
+@Controller
+@RequestMapping(FEDERACAO_CONTINENTAL)
+@RequiredArgsConstructor
+@Slf4j
+public class FederacaoContinentalController {
+
+    private static final String VIEWS_FOLDER = "federacao_continental/";
+
+    private final FederacaoContinentalService federacaoContinentalService;
+
+    @GetMapping
+    public ModelAndView listAll() {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "lista_federacoes_continentais");
+
+        List<FederacaoContinentalDTO> federacoes = federacaoContinentalService.getAll();
+        model.addObject("federacoes", federacoes);
+
+        return model;
+    }
+
+    @GetMapping("/ver/{id}")
+    public ModelAndView visualizar(@PathVariable Long id) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_federacao_continental");
+
+        FederacaoContinentalDTO federacao = federacaoContinentalService.getById(id);
+        model.addObject("federacao", federacao);
+        model.addObject("visualizacao", true);
+
+        return model;
+    }
+
+    @GetMapping("/editar/{id}")
+    public ModelAndView editar(@PathVariable Long id, @RequestParam(required = false) boolean edicao) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_federacao_continental");
+
+        FederacaoContinentalDTO federacao = federacaoContinentalService.getById(id);
+        model.addObject("federacao", federacao);
+        model.addObject("edicao", edicao);
+
+        return model;
+    }
+
+    @GetMapping("/cadastrar")
+    public ModelAndView cadastrarForm(@RequestParam(required = false) boolean cadastro) {
+        var model = new ModelAndView();
+        model.setViewName(VIEWS_FOLDER + "form_federacao_continental");
+
+        model.addObject("federacao", new FederacaoContinentalDTO());
+        model.addObject("cadastro", cadastro);
+
+        return model;
+    }
+
+    @PostMapping("/cadastrar")
+    public ModelAndView save(@Valid FederacaoContinentalDTO federacao, BindingResult bindingResult) {
+        var model = new ModelAndView();
+        var errors = ControllerUtils.createValidationErrorResponse(bindingResult);
+
+        if (!errors.hasErrors()) {
+            federacaoContinentalService.save(federacao);
+
+            if (federacao.getId() == null) {
+                model.setViewName("redirect:" + FEDERACAO_CONTINENTAL + "/cadastrar?cadastro=true");
+            } else {
+                model.setViewName("redirect:" + FEDERACAO_CONTINENTAL + "/editar/" + federacao.getId() + "?edicao=true");
+            }
+
+            return model;
+        }
+
+        model.addObject("errors", errors);
+        model.addObject("federacao", federacao);
+        model.setViewName(VIEWS_FOLDER + "form_federacao_continental");
+
+        return model;
+    }
+}
