@@ -1,0 +1,42 @@
+@import com.trabalho.domain.dto.FederacaoContinentalDTO
+
+@import java.util.List
+
+@param List<FederacaoContinentalDTO> federacoes
+@param boolean logado
+
+@template.layout.main(logado = logado, content = @`
+    
+    <h2 class="title-page">Federações Continentais Cadastradas</h2>
+
+    <a href="/federacao-continental/cadastrar" class="btn-adicionar">Cadastrar Nova Federação</a>
+
+    <table class="tabela">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Continente</th>
+            <th>Email</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        @for(var federacao : federacoes)
+            <tr>
+                <td>${federacao.getId()}</td>
+                <td>${federacao.getNome()}</td>
+                <td>${federacao.getContinente()}</td>
+                <td>${federacao.getEmail()}</td>
+                <td>
+                    <a href="/federacao-continental/ver/${federacao.getId()}" class="btn-ver">Ver</a>
+                    <a href="/federacao-continental/editar/${federacao.getId()}?edicao=true" class="btn-editar">Editar</a>
+                </td>
+            </tr>
+        @endfor
+        </tbody>
+    </table>
+`)
+
+com base no jte acima, faça um list_
