@@ -11,8 +11,10 @@
             <ul id="header-nav">
                 <li><a href="/">Home</a></li>
                 <li><a href="/federacao_nacional">Federação Nacional</a></li>
+                <li><a href="/clube">Clube</a></li>
+                <li><a href="/Jogador">Jogador</a></li>
                 @if (logado)
-                    <li><a href="/dono">Donos</a></li>
+                    <li><a href="/clube">Clubes</a></li>
                     <li><a href="/logout">Logout</a></li>
                 @else
                     <li><a href="/login">Login</a></li>
